@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <d3d9.h>
-#pragma comment(lib,"d3d9.lib");
-#pragma comment(lib,"d3dx9.lib");
+#pragma comment(lib,"d3d9.lib")
+#pragma comment(lib,"d3dx9.lib")
 
 
 #define WINDOW_CLASS "UGPDX"
@@ -11,9 +11,22 @@
 LPDIRECT3D9 g_D3D = NULL;
 LPDIRECT3DDEVICE9 g_D3DDevice = NULL;
 
+LPDIRECT3DVERTEXBUFFER9 g_VertexBuffer = NULL;
+
 bool InitializeD3D(HWND hWnd);
+bool InitializeObjects();
 void Shutdown();
 void RenderScene();
+
+
+struct stD3DVertex
+{
+	float x, y, z, rhw;
+	unsigned long color;
+};
+
+#define D3DFVF_VERTEX (D3DFVF_XYZRHW|D3DFVF_DIFFUSE)
+
 
 LRESULT WINAPI MsgProc(HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam)
 {
@@ -30,7 +43,7 @@ LRESULT WINAPI MsgProc(HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam)
 	//最终得到WM_QUIT而使消息循环退出，
 	//程序退出。
 	case WM_DESTROY:
-		PostQuitMessage(9);
+		PostQuitMessage(0);
 		return 0;
 		break;
 
@@ -136,6 +149,11 @@ bool InitializeD3D(HWND hWnd)
 	{
 		return false;
 	}
+
+
+	//要绘制的d3d对象
+	if (!InitializeObjects())
+		return false;
 	return true;
 
 }
@@ -145,6 +163,11 @@ void Shutdown()
 {
 	if (g_D3DDevice != NULL)g_D3DDevice->Release();
 	if (g_D3D != NULL)g_D3D->Release();
+	if (g_VertexBuffer != NULL)g_VertexBuffer->Release();
+
+	g_D3DDevice = NULL;
+	g_D3D = NULL;
+	g_VertexBuffer = NULL;
 }
 
 
@@ -153,7 +176,59 @@ void RenderScene()
 	g_D3DDevice->Clear(0,NULL,D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1.0F,0);
 	g_D3DDevice->BeginScene();
 	//输出3D图
+	g_D3DDevice->SetStreamSource(0,g_VertexBuffer,0,sizeof(stD3DVertex));
+	g_D3DDevice->SetFVF(D3DFVF_VERTEX);
+
+
+	//g_D3DDevice->DrawPrimitive(D3DPT_LINELIST,0,2);
+	g_D3DDevice->DrawPrimitive(D3DPT_TRIANGLELIST, 0, 1);
+
 	g_D3DDevice->EndScene();
 
 	g_D3DDevice->Present(NULL,NULL,NULL,NULL);
+}
+
+
+
+//初始化要绘制的对象
+bool InitializeObjects()
+{
+	unsigned long col = D3DCOLOR_XRGB(255,255,255);
+
+	//stD3DVertex objData[] =
+	//{
+	//	{420.0f,150.0f,0.5f,1.0f,col},
+	//	{420.0f,350.0f,0.5f,1.0f,col},
+	//	{220.0f,150.0f,0.5f,1.0f,col},
+	//	{220.0f,350.0f,0.5f,1.0f,col},
+	//};
+
+	/*stD3DVertex objData[] =
+	{
+		{320.0f,150.0f,0,1,col,},
+		{320.0f,350.0f,0,1,col,},
+		{220.0f,350.0f,0,1,col,},
+	};*/
+
+
+	stD3DVertex objData[] =
+	{
+		{320.0f,150.0f,0,1,D3DCOLOR_XRGB(255,255,0),},
+		{420.0f,350.0f,0,1,D3DCOLOR_XRGB(255,0,0),},
+		{220.0f,350.0f,0,1,D3DCOLOR_XRGB(0,255,0),},
+	}; 
+
+	//创建顶点缓存
+	if (FAILED(g_D3DDevice->CreateVertexBuffer(sizeof(objData), 0, D3DFVF_VERTEX, D3DPOOL_DEFAULT, &g_VertexBuffer, NULL)))
+		return false;
+
+	void *ptr;
+	if (FAILED(g_VertexBuffer->Lock(0, sizeof(objData), (void**)&ptr, 0)))
+		return false;
+
+	memcpy(ptr,objData,sizeof(objData));
+	
+	g_VertexBuffer->Unlock();
+
+	return true;
 }
