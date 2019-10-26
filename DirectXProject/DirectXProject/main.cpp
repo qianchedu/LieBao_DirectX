@@ -14,6 +14,7 @@
 LPDIRECT3D9 g_D3D = NULL;
 LPDIRECT3DDEVICE9 g_D3DDevice = NULL;
 D3DXMATRIX g_ortho;
+D3DXMATRIX g_projection;
 LPDIRECT3DVERTEXBUFFER9 g_VertexBuffer = NULL;
 
 bool InitializeD3D(HWND hWnd);
@@ -208,19 +209,29 @@ void RenderScene()
 bool InitializeObjects()
 {
 	//unsigned long col = D3DCOLOR_XRGB(255,255,255);
-	D3DXMatrixOrthoLH(&g_ortho,WINDOW_WIDTH,WIDNOW_HEIGHT,0.1F,1000.0F);
-	g_D3DDevice->SetTransform(D3DTS_PROJECTION,&g_ortho);
+	//正交矩阵
+	//D3DXMatrixOrthoLH(&g_ortho,WINDOW_WIDTH,WIDNOW_HEIGHT,0.1F,1000.0F);
+	D3DXMatrixPerspectiveFovLH(&g_projection,45.0f,WINDOW_WIDTH/WIDNOW_HEIGHT,0.1F,1000.0F);
+	g_D3DDevice->SetTransform(D3DTS_PROJECTION,&g_projection);
 
 	//关闭灯光
 	g_D3DDevice->SetRenderState(D3DRS_LIGHTING,FALSE);
 	//消隐-背面消隐
 	g_D3DDevice->SetRenderState(D3DRS_CULLMODE,D3DCULL_NONE);
 
+	//stD3DVertex objData[] =
+	//{
+	//	{-150.0f,-150.0f,0.1f,D3DCOLOR_XRGB(255,255,0)},
+	//	{ 150.0f,-150.0f,0.1f,D3DCOLOR_XRGB(255,0,0)},
+	//	{   0.0f, 150.0f,0.1f,D3DCOLOR_XRGB(0,0,255),},
+	//};
+
+
 	stD3DVertex objData[] =
 	{
-		{-150.0f,-150.0f,0.1f,D3DCOLOR_XRGB(255,255,0)},
-		{ 150.0f,-150.0f,0.1f,D3DCOLOR_XRGB(255,0,0)},
-		{   0.0f, 150.0f,0.1f,D3DCOLOR_XRGB(0,0,255),},
+		{-0.3f,-0.3f,10.1f,D3DCOLOR_XRGB(255,255,0)},
+		{ 0.3f,-0.3f,10.1f,D3DCOLOR_XRGB(255,0,0)},
+		{ 0.0f, 0.3f,10.1f,D3DCOLOR_XRGB(0,0,255),},
 	};
 
 
