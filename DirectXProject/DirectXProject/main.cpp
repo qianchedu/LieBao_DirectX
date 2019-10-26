@@ -4,6 +4,7 @@
 #pragma comment(lib,"d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 
+//视图变换	世界变换
 
 #define WINDOW_CLASS "UGPDX"
 #define WINDOW_TITLE "姆姆游戏引擎demo"
@@ -11,10 +12,22 @@
 #define WIDNOW_HEIGHT 480
 
 
+
 LPDIRECT3D9 g_D3D = NULL;
 LPDIRECT3DDEVICE9 g_D3DDevice = NULL;
+//正交投影矩阵
 D3DXMATRIX g_ortho;
+//透视投影矩阵
 D3DXMATRIX g_projection;
+//世界矩阵=平移矩阵*旋转矩阵(得到的世界矩阵做一个世界变换)
+D3DXMATRIX g_worldMatrix;
+//平移矩阵
+D3DXMATRIX g_translation;
+//旋转矩阵
+D3DXMATRIX g_rotation;
+
+
+float g_angle = 0.0f;
 LPDIRECT3DVERTEXBUFFER9 g_VertexBuffer = NULL;
 
 bool InitializeD3D(HWND hWnd);
@@ -185,6 +198,17 @@ void RenderScene()
 {
 	g_D3DDevice->Clear(0,NULL,D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1.0F,0);
 	g_D3DDevice->BeginScene();
+
+	D3DXMatrixTranslation(&g_translation,0.0f,0.0f,3.0f);
+	D3DXMatrixRotationY(&g_rotation, g_angle);
+	g_worldMatrix = g_rotation * g_translation;
+
+	g_angle += 0.01f;
+	if (g_angle >= 360)
+		g_angle = 0.0f;
+	//世界变换
+	g_D3DDevice->SetTransform(D3DTS_WORLD,&g_worldMatrix);
+
 	//输出3D图
 	g_D3DDevice->SetStreamSource(0,g_VertexBuffer,0,sizeof(stD3DVertex));
 	g_D3DDevice->SetFVF(D3DFVF_VERTEX);
@@ -211,6 +235,7 @@ bool InitializeObjects()
 	//unsigned long col = D3DCOLOR_XRGB(255,255,255);
 	//正交矩阵
 	//D3DXMatrixOrthoLH(&g_ortho,WINDOW_WIDTH,WIDNOW_HEIGHT,0.1F,1000.0F);
+	//透视投影
 	D3DXMatrixPerspectiveFovLH(&g_projection,45.0f,WINDOW_WIDTH/WIDNOW_HEIGHT,0.1F,1000.0F);
 	g_D3DDevice->SetTransform(D3DTS_PROJECTION,&g_projection);
 
@@ -219,6 +244,7 @@ bool InitializeObjects()
 	//消隐-背面消隐
 	g_D3DDevice->SetRenderState(D3DRS_CULLMODE,D3DCULL_NONE);
 
+	//正交投影
 	//stD3DVertex objData[] =
 	//{
 	//	{-150.0f,-150.0f,0.1f,D3DCOLOR_XRGB(255,255,0)},
@@ -227,6 +253,7 @@ bool InitializeObjects()
 	//};
 
 
+	//透视投影
 	stD3DVertex objData[] =
 	{
 		{-0.3f,-0.3f,10.1f,D3DCOLOR_XRGB(255,255,0)},
